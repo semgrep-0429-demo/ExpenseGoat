@@ -89,6 +89,12 @@ def api_expense_update_amount(request, pk):
     expense = Expense.objects.filter(pk=pk).first()
     if not expense:
         return JsonResponse({'error': 'Not found'}, status=404)
+    # Authorization: only the owner can update their own expense
+    if expense.employee != request.user:
+        return JsonResponse({'error': 'Forbidden'}, status=403)
+    # Only DRAFT expenses can be modified
+    if expense.status != Expense.Status.DRAFT:
+        return JsonResponse({'error': 'Only draft expenses can be modified'}, status=400)
     data = _parse_json_body(request) or request.POST.dict()
     amount = data.get('amount')
     if amount is not None:
