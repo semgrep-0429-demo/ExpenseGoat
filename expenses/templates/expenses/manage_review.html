@@ -1,0 +1,26 @@
+{% extends "expenses/base.html" %}
+{% block title %}Review expense #{{ expense.id }} — Expense Goat{% endblock %}
+{% block content %}
+<h1>Review expense #{{ expense.id }}</h1>
+<p><strong>Employee:</strong> {{ expense.employee.username }}</p>
+<p><strong>Amount:</strong> {{ expense.amount }} {{ expense.currency }}</p>
+<p><strong>Category:</strong> {{ expense.get_category_display }}</p>
+<p><strong>Description:</strong> {{ expense.description|default:"—" }}</p>
+
+<form method="post">
+  {% csrf_token %}
+  <p>
+    <label>Decision:</label>
+    <select name="decision" required>
+      <option value="APPROVED">Approve</option>
+      <option value="DENIED">Deny</option>
+    </select>
+  </p>
+  <p>
+    <label>Note:</label>
+    <textarea name="note" rows="3"></textarea>
+  </p>
+  <button type="submit" class="btn">Submit decision</button>
+  <a href="{% url 'manage_queue' %}" class="btn btn-secondary">Back to queue</a>
+</form>
+{% endblock %}

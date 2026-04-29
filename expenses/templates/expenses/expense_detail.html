@@ -1,0 +1,54 @@
+{% extends "expenses/base.html" %}
+{% block title %}Expense #{{ expense.id }} — Expense Goat{% endblock %}
+{% block content %}
+<h1>Expense #{{ expense.id }}</h1>
+<p><strong>Amount:</strong> {{ expense.amount }} {{ expense.currency }}</p>
+<p><strong>Category:</strong> {{ expense.get_category_display }}</p>
+<p><strong>Description:</strong> {{ expense.description|default:"—" }}</p>
+<p><strong>Status:</strong> {{ expense.get_status_display }}</p>
+<p><strong>Department:</strong> {{ expense.department.code }}</p>
+<p><strong>Employee:</strong> {{ expense.employee.username }}</p>
+<p><strong>Created:</strong> {{ expense.created_at|date:"Y-m-d H:i" }}</p>
+
+{% if expense.status == 'DRAFT' and expense.employee_id == user.id %}
+<p>
+  <a href="{% url 'expense_edit' expense.pk %}" class="btn">Edit</a>
+  <form method="post" action="{% url 'expense_submit' expense.pk %}" style="display: inline;">
+    {% csrf_token %}
+    <button type="submit" class="btn">Submit</button>
+  </form>
+</p>
+{% endif %}
+
+{% if expense.employee_id == user.id %}
+<p><a href="{% url 'receipt_upload' expense.pk %}" class="btn">Upload receipt</a></p>
+{% endif %}
+
+<h2>Receipts</h2>
+<ul>
+  {% for r in expense.receipts.all %}
+  <li>
+    {% if r.file %}
+    <a href="{% url 'receipt_download' r.pk %}">Download receipt {{ r.id }}</a>
+    {% else %}Receipt {{ r.id }} (no file){% endif %}
+    — {{ r.created_at|date:"Y-m-d" }}
+  </li>
+  {% empty %}
+  <li>No receipts.</li>
+  {% endfor %}
+</ul>
+
+{% if user.profile and user.profile.is_manager and expense.department_id == user.profile.department_id and expense.status == 'SUBMITTED' and expense.employee_id != user.id %}
+<p><a href="{% url 'manage_review' expense.pk %}" class="btn">Review</a></p>
+{% endif %}
+
+{% if user.profile and user.profile.is_finance and expense.status == 'APPROVED' %}
+<form method="post" action="{% url 'finance_mark_paid' expense.pk %}">
+  {% csrf_token %}
+  <input type="hidden" name="next" value="{{ request.path }}">
+  <button type="submit" class="btn">Mark paid</button>
+</form>
+{% endif %}
+
+<p><a href="{% url 'expense_list' %}" class="btn btn-secondary">Back to list</a></p>
+{% endblock %}

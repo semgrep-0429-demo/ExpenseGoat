@@ -1,0 +1,38 @@
+{% extends "expenses/base.html" %}
+{% block title %}Review queue — Expense Goat{% endblock %}
+{% block content %}
+<h1>Review queue</h1>
+<p>Submitted expenses in your department (excluding your own).</p>
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Employee</th>
+      <th>Amount</th>
+      <th>Category</th>
+      <th>Submitted</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for e in expenses %}
+    <tr>
+      <td>{{ e.id }}</td>
+      <td>{{ e.employee.username }}</td>
+      <td>{{ e.amount }} {{ e.currency }}</td>
+      <td>{{ e.get_category_display }}</td>
+      <td>{{ e.submitted_at|date:"Y-m-d H:i" }}</td>
+      <td>
+        <a href="{% url 'manage_review' e.pk %}" class="btn">Review</a>
+        <form method="post" action="{% url 'manage_approve_quick' e.pk %}" style="display: inline;">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-secondary">Quick approve</button>
+        </form>
+      </td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="6">No expenses in queue.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
